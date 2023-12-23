@@ -3,6 +3,7 @@ import "dotenv/config";
 import cors from "cors";
 import { connectToMongo } from "./config/mongoose/mongoose.js";
 import routes from "./routes/index.js";
+import { startConsumer } from "./proofConcept/KafkaComsumer.js";
 
 const app = express();
 
@@ -15,6 +16,7 @@ const port = process.env.PORT || 3000;
 
 try{
     await connectToMongo();
+    await startConsumer();
     app.listen(port, () => {
         console.log(`server is running on port ${port}`)
     });
