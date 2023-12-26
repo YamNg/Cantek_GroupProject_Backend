@@ -16,7 +16,7 @@ export async function startConsumer(): Promise<void> {
             console.log(`Received message: ${message.value?.toString()}`);
             
             // Simulate message processing delay
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            await new Promise(resolve => setTimeout(resolve, 500));
 
             console.log(`Processing completed ${message.value?.toString()}`);
         },
