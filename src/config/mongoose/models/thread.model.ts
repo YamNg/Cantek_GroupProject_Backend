@@ -21,10 +21,20 @@ const ThreadSchema: Schema = new Schema(
     userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
     active: { type: Boolean, default: true },
     metadata: {
-      commentCount: { type: Number, default: 0 },
+      commentCount: { type: Number, default: 1 },
     },
   },
   { timestamps: true }
 );
+
+ThreadSchema.virtual("author", {
+  ref: "User",
+  localField: "userId",
+  foreignField: "_id",
+  justOne: true,
+});
+
+ThreadSchema.set("toObject", { virtuals: true });
+ThreadSchema.set("toJSON", { virtuals: true });
 
 export const Thread = mongoose.model<IThread>("Thread", ThreadSchema);

@@ -12,7 +12,7 @@ export const addTopic = async (req: Request, res: Response) => {
       { $push: { topics: result._id } }
     );
 
-    res.status(201);
+    res.status(201).send();
   } catch (err) {
     res.status(400).send(err);
   }
