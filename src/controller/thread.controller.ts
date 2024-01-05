@@ -1,12 +1,14 @@
 import { Thread } from "../config/mongoose/models/thread.model.js";
 import { Comment } from "../config/mongoose/models/comment.model.js";
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { addThreadRequestValidator } from "./validator/thread-request.validator.js";
 import { addCommentRequestValidator } from "./validator/comment-request.validator.js";
 import mongoose from "mongoose";
 import { ThreadConstants } from "../config/constant/thread.constant.js";
 import { ThreadDto, ThreadListItemDto } from "./dto/thread.dto.js";
 import { CommentConstants } from "../config/constant/comment.constant.js";
+import { CustomError } from "../config/error/custom.error.js";
+import { GenericResponseDto } from "./dto/generic-response.dto.js";
 
 /* Threads related Operations */
 export const addThread = async (req: Request, res: Response) => {
@@ -45,7 +47,12 @@ export const addThread = async (req: Request, res: Response) => {
 
     await session.commitTransaction();
 
-    res.status(201).send({ _id: savedThreadId });
+    res.status(201).send(
+      new GenericResponseDto({
+        isSuccess: true,
+        body: { _id: savedThreadId },
+      })
+    );
   } catch (err) {
     await session.abortTransaction();
     res.status(400).send(err);
@@ -72,7 +79,12 @@ export const getThreadDetailByPage = async (req: Request, res: Response) => {
       },
     ]);
 
-    res.status(200).send(new ThreadDto(thread));
+    res.status(200).send(
+      new GenericResponseDto({
+        isSuccess: true,
+        body: new ThreadDto(thread),
+      })
+    );
   } catch (err) {
     res.status(400).send(err);
   }
@@ -97,16 +109,23 @@ export const getThreadsByTopic = async (req: Request, res: Response) => {
         { path: "author", select: ["username"] },
       ]);
 
-    res
-      .status(200)
-      .send(threads.map((thread) => new ThreadListItemDto(thread)));
+    res.status(200).send(
+      new GenericResponseDto({
+        isSuccess: true,
+        body: threads.map((thread) => new ThreadListItemDto(thread)),
+      })
+    );
   } catch (err) {
     res.status(400).send(err);
   }
 };
 
 /* Comment related operations */
-export const addCommentToThread = async (req: Request, res: Response) => {
+export const addCommentToThread = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   const { error, value } = addCommentRequestValidator.validate(req.body);
   if (error) {
     return res.status(400).send(error);
@@ -132,6 +151,7 @@ export const addCommentToThread = async (req: Request, res: Response) => {
 
     if (!updatedMetadataThread) {
       throw new Error("COMMENT_NOT_ADDED");
+      // throw new CustomError("COMMENT_NOT_ADDED", 401);
     }
 
     const newComment = new Comment({
@@ -151,10 +171,19 @@ export const addCommentToThread = async (req: Request, res: Response) => {
 
     await session.commitTransaction();
 
-    res.status(201).send();
+    res.status(201).send(
+      new GenericResponseDto({
+        isSuccess: true,
+        body: {
+          _id: savedCommentId,
+        },
+      })
+    );
   } catch (err) {
+    console.log("reach catch");
     await session.abortTransaction();
-    res.status(400).send(err);
+    // res.status(400).send(err);
+    next(err);
   }
 };
 
@@ -221,7 +250,14 @@ export const addReplyCommentToThread = async (req: Request, res: Response) => {
 
     await session.commitTransaction();
 
-    res.status(201).send();
+    res.status(201).send(
+      new GenericResponseDto({
+        isSuccess: true,
+        body: {
+          _id: savedCommentId,
+        },
+      })
+    );
   } catch (err) {
     await session.abortTransaction();
     res.status(400).send(err);

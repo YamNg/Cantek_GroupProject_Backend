@@ -3,6 +3,7 @@ import { Comment } from "../config/mongoose/models/comment.model.js";
 import { PersistentCommentAnalytics } from "../config/mongoose/models/comment-analytics.event.model.js";
 import { CommentAnalyticsConstants } from "../config/constant/comment.constant.js";
 import mongoose, { ClientSession } from "mongoose";
+import { GenericResponseDto } from "./dto/generic-response.dto.js";
 
 export const upvoteComment = async (req: Request, res: Response) => {
   const commentId = req.params.commentId;
@@ -17,7 +18,9 @@ export const upvoteComment = async (req: Request, res: Response) => {
       userId,
       session
     );
-    res.status(201).send(comment);
+    res
+      .status(201)
+      .send(new GenericResponseDto({ isSuccess: true, body: comment }));
   } catch (err) {
     await session.abortTransaction();
     res.status(400).send(err);
@@ -37,7 +40,9 @@ export const downvoteComment = async (req: Request, res: Response) => {
       userId,
       session
     );
-    res.status(201).send(comment);
+    res
+      .status(201)
+      .send(new GenericResponseDto({ isSuccess: true, body: comment }));
   } catch (err) {
     await session.abortTransaction();
     res.status(400).send(err);
