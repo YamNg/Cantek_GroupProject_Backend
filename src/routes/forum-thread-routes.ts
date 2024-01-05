@@ -1,8 +1,10 @@
 import express from "express";
 import {
   addThread,
-  getThread,
+  getThreadDetailByPage,
   getThreadsByTopic,
+  addCommentToThread,
+  addReplyCommentToThread,
 } from "../controller/thread.controller.js";
 
 const router = express.Router();
@@ -12,11 +14,11 @@ router.post("/", addThread);
 
 // get Thread by topicId
 // query parameters:
-// - pageSize > controlling pagination size
 // - lastId > last threadId of last page loaded
 router.get("/all/topic/:topicId", getThreadsByTopic);
+router.get("/:threadId/page/:pageNumber", getThreadDetailByPage);
 
-// getting plain Thread object, without comment preloaded
-router.get("/:threadId", getThread);
+router.post("/:threadId/comment", addCommentToThread);
+router.post("/:threadId/comment/:commentId/reply", addReplyCommentToThread);
 
 export default router;

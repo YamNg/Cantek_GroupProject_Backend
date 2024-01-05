@@ -2,8 +2,17 @@ import { Thread } from "../config/mongoose/models/thread.model.js";
 import { Comment } from "../config/mongoose/models/comment.model.js";
 import { Request, Response } from "express";
 import { addThreadRequestValidator } from "./validator/thread-request.validator.js";
+import { addCommentRequestValidator } from "./validator/comment-request.validator.js";
 import mongoose from "mongoose";
+import { ThreadConstants } from "../config/constant/thread.constant.js";
+import { ThreadDto, ThreadListItemDto } from "./dto/thread.dto.js";
+import { CommentConstants } from "../config/constant/comment.constant.js";
 
+/*
+  TODO - Upvote Downvote
+*/
+
+/* Threads related Operations */
 export const addThread = async (req: Request, res: Response) => {
   const { error, value } = addThreadRequestValidator.validate(req.body);
   if (error) {
@@ -25,6 +34,7 @@ export const addThread = async (req: Request, res: Response) => {
 
     const newComment = new Comment({
       threadId: savedThreadId,
+      threadCommentNum: 1,
       content: value.content,
       userId: value.userId,
     });
@@ -46,17 +56,42 @@ export const addThread = async (req: Request, res: Response) => {
   }
 };
 
-export const getThread = async (req: Request, res: Response) => {
+export const getThreadDetailByPage = async (req: Request, res: Response) => {
   try {
+    const commentPageNumber = parseInt(req.params.pageNumber) || 1;
     const threadId = req.params.threadId;
-    const thread = await Thread.findOne({ _id: threadId });
 
-    // populate the first page
-    if (!thread) {
-      return res.status(404).send();
-    }
+    // Approach 1 - using skip-limit
+    const skip = (commentPageNumber - 1) * CommentConstants.pageSize;
+    const limit = CommentConstants.pageSize;
 
-    res.status(200).send(thread);
+    const thread = await Thread.findById({ _id: threadId }).populate([
+      {
+        path: "comments",
+        options: { skip: skip, limit: limit },
+        populate: {
+          path: "author",
+          select: ["username"],
+        },
+      },
+    ]);
+
+    res.status(200).send(new ThreadDto(thread));
+
+    // Approach 2 - using slice and query all comment at once
+    // const thread = await Thread.findById({ _id: threadId });
+    // if (!thread) {
+    //   return res.status(404).send();
+    // }
+
+    // const start = (commentPageNumber - 1) * 3;
+    // const targetCommentIds = thread.comments.slice(start, start + 3);
+
+    // const comments = await Comment.find({
+    //   _id: { $in: targetCommentIds },
+    // });
+    //
+    // res.status(200).send(comments);
   } catch (err) {
     res.status(400).send(err);
   }
@@ -64,7 +99,7 @@ export const getThread = async (req: Request, res: Response) => {
 
 export const getThreadsByTopic = async (req: Request, res: Response) => {
   try {
-    const pageSize = req.query.pageSize ? Number(req.query.pageSize) : 2;
+    const pageSize = ThreadConstants.pageSize;
     const lastId = req.query.lastId;
     const topicId = req.params.topicId;
 
@@ -77,12 +112,131 @@ export const getThreadsByTopic = async (req: Request, res: Response) => {
       })
       .limit(pageSize)
       .populate([
-        { path: "comments", options: { limit: 1 } },
-        { path: "author", select: ["_id", "username"] },
+        { path: "content" },
+        { path: "author", select: ["username"] },
       ]);
 
-    res.status(200).send(threads);
+    res
+      .status(200)
+      .send(threads.map((thread) => new ThreadListItemDto(thread)));
   } catch (err) {
+    res.status(400).send(err);
+  }
+};
+
+/* Comment related operations */
+export const addCommentToThread = async (req: Request, res: Response) => {
+  const { error, value } = addCommentRequestValidator.validate(req.body);
+  if (error) {
+    return res.status(400).send(error);
+  }
+
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    const threadId = req.params.threadId;
+    const updatedMetadataThread = await Thread.findByIdAndUpdate(
+      threadId,
+      { $inc: { "metadata.commentCount": 1 } },
+      {
+        new: true,
+        session,
+        query: { "metadata.commentCount": { $lt: 1001 }, active: true },
+      }
+    );
+
+    if (!updatedMetadataThread) {
+      throw new Error("COMMENT_NOT_ADDED");
+    }
+
+    const newComment = new Comment({
+      threadId: threadId,
+      threadCommentNum: updatedMetadataThread?.metadata.commentCount,
+      content: value.content,
+      userId: value.userId,
+    });
+
+    const { _id: savedCommentId } = await newComment.save({ session });
+
+    await Thread.findOneAndUpdate(
+      { _id: threadId },
+      { $push: { comments: savedCommentId } },
+      { new: true, session }
+    );
+
+    await session.commitTransaction();
+
+    res.status(201).send();
+  } catch (err) {
+    await session.abortTransaction();
+    res.status(400).send(err);
+  }
+};
+
+export const addReplyCommentToThread = async (req: Request, res: Response) => {
+  const { error, value } = addCommentRequestValidator.validate(req.body);
+  if (error) {
+    return res.status(400).send(error);
+  }
+
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    const threadId = req.params.threadId;
+    const commentId = req.params.commentId;
+    const updatedMetadataThread = await Thread.findByIdAndUpdate(
+      threadId,
+      { $inc: { "metadata.commentCount": 1 } },
+      {
+        new: true,
+        session,
+        query: { "metadata.commentCount": { $lt: 1001 }, active: true },
+      }
+    );
+
+    if (!updatedMetadataThread) {
+      throw new Error("COMMENT_NOT_ADDED");
+    }
+
+    const parentComment = await Comment.findById(commentId, {
+      query: { active: true },
+    });
+
+    if (!parentComment) {
+      throw new Error("PARENT_COMMENT_NOT_FOUND");
+    }
+
+    const newComment = new Comment({
+      threadId: threadId,
+      threadCommentNum: updatedMetadataThread?.metadata.commentCount,
+      content: value.content,
+      userId: value.userId,
+      metadata: {
+        ancestor: [...(parentComment?.metadata.ancestor ?? []), commentId],
+      },
+    });
+
+    const { _id: savedCommentId } = await newComment.save({ session });
+
+    await Comment.findOneAndUpdate(
+      { _id: commentId },
+      { $push: { "metadata.children": savedCommentId } },
+      { new: true, session }
+    );
+
+    await Thread.findOneAndUpdate(
+      { _id: threadId },
+      { $push: { comments: savedCommentId } },
+      { new: true, session }
+    );
+
+    await session.commitTransaction();
+
+    res.status(201).send();
+  } catch (err) {
+    await session.abortTransaction();
     res.status(400).send(err);
   }
 };

@@ -1,3 +1,4 @@
-export const ThreadConfiguration = {
+export const ThreadConstants = {
   pageSize: 25,
+  commentCountLimit: 1001,
 };

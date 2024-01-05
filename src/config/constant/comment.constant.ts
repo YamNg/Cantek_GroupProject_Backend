@@ -1,3 +1,3 @@
-export const CommentConfiguration = {
+export const CommentConstants = {
   pageSize: 25,
 };
