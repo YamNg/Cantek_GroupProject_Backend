@@ -8,10 +8,6 @@ import { ThreadConstants } from "../config/constant/thread.constant.js";
 import { ThreadDto, ThreadListItemDto } from "./dto/thread.dto.js";
 import { CommentConstants } from "../config/constant/comment.constant.js";
 
-/*
-  TODO - Upvote Downvote
-*/
-
 /* Threads related Operations */
 export const addThread = async (req: Request, res: Response) => {
   const { error, value } = addThreadRequestValidator.validate(req.body);
@@ -77,21 +73,6 @@ export const getThreadDetailByPage = async (req: Request, res: Response) => {
     ]);
 
     res.status(200).send(new ThreadDto(thread));
-
-    // Approach 2 - using slice and query all comment at once
-    // const thread = await Thread.findById({ _id: threadId });
-    // if (!thread) {
-    //   return res.status(404).send();
-    // }
-
-    // const start = (commentPageNumber - 1) * 3;
-    // const targetCommentIds = thread.comments.slice(start, start + 3);
-
-    // const comments = await Comment.find({
-    //   _id: { $in: targetCommentIds },
-    // });
-    //
-    // res.status(200).send(comments);
   } catch (err) {
     res.status(400).send(err);
   }
@@ -142,7 +123,10 @@ export const addCommentToThread = async (req: Request, res: Response) => {
       {
         new: true,
         session,
-        query: { "metadata.commentCount": { $lt: 1001 }, active: true },
+        query: {
+          "metadata.commentCount": { $lt: ThreadConstants.commentCountLimit },
+          active: true,
+        },
       }
     );
 
@@ -192,7 +176,10 @@ export const addReplyCommentToThread = async (req: Request, res: Response) => {
       {
         new: true,
         session,
-        query: { "metadata.commentCount": { $lt: 1001 }, active: true },
+        query: {
+          "metadata.commentCount": { $lt: ThreadConstants.commentCountLimit },
+          active: true,
+        },
       }
     );
 
