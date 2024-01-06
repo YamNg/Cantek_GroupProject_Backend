@@ -1,4 +1,5 @@
 import mongoose, { Schema, Document } from "mongoose";
+import { IComment } from "./comment.model.js";
 
 interface IThread extends Document {
   topicId: mongoose.Types.ObjectId;
@@ -21,10 +22,30 @@ const ThreadSchema: Schema = new Schema(
     userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
     active: { type: Boolean, default: true },
     metadata: {
-      commentCount: { type: Number, default: 0 },
+      commentCount: { type: Number, default: 1 },
     },
   },
   { timestamps: true }
 );
+
+ThreadSchema.virtual("author", {
+  ref: "User",
+  localField: "userId",
+  foreignField: "_id",
+  justOne: true,
+});
+
+ThreadSchema.virtual("content", {
+  ref: "Comment",
+  localField: "comments",
+  foreignField: "_id",
+  justOne: true,
+});
+
+ThreadSchema.set("toObject", { virtuals: true });
+ThreadSchema.set("toJSON", { virtuals: true });
+
+// for retrieve post history of a user
+ThreadSchema.index({ userId: 1, _id: -1 });
 
 export const Thread = mongoose.model<IThread>("Thread", ThreadSchema);
