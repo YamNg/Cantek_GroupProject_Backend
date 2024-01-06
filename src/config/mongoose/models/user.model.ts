@@ -15,9 +15,10 @@ interface IUser extends Document {
 
 const UserSchema: Schema = new Schema(
   {
-    username: { type: String, required: true },
+    username: { type: String },
     email: { type: String, required: true },
-    salt: { type: String, required: true },
+    password: {type: String},
+    salt: { type: String },
     threads: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Thread' }],
     comments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Comment' }],
     savedThreads: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Thread' }],
