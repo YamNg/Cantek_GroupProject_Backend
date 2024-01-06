@@ -7,19 +7,30 @@ import mongoose from "mongoose";
 import { ThreadConstants } from "../config/constant/thread.constant.js";
 import { ThreadDto, ThreadListItemDto } from "./dto/thread.dto.js";
 import { CommentConstants } from "../config/constant/comment.constant.js";
-import { CustomError } from "../config/error/custom.error.js";
 import { GenericResponseDto } from "./dto/generic-response.dto.js";
+import Joi from "joi";
+import { commentPageNumberValidator } from "./validator/comment-request.validator.js";
+import { AppError } from "../config/error/app.error.js";
+import {
+  CommentNotFound,
+  ParentCommentNotFound,
+  ThreadNotFound,
+} from "../config/constant/app.error.contant.js";
 
 /* Threads related Operations */
-export const addThread = async (req: Request, res: Response) => {
-  const { error, value } = addThreadRequestValidator.validate(req.body);
-  if (error) {
-    return res.status(400).send(error);
-  }
-
+export const addThread = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   const session = await mongoose.startSession();
 
   try {
+    const { error, value } = addThreadRequestValidator.validate(req.body, {
+      abortEarly: false,
+    });
+    if (error) throw error;
+
     session.startTransaction();
 
     const newThread = new Thread({
@@ -54,17 +65,28 @@ export const addThread = async (req: Request, res: Response) => {
       })
     );
   } catch (err) {
-    await session.abortTransaction();
-    res.status(400).send(err);
+    if (session.inTransaction()) await session.abortTransaction();
+    next(err);
+  } finally {
+    await session.endSession();
   }
 };
 
-export const getThreadDetailByPage = async (req: Request, res: Response) => {
+export const getThreadDetailByPage = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
-    const commentPageNumber = parseInt(req.params.pageNumber) || 1;
+    const { error, value } = commentPageNumberValidator.validate({
+      pageNumber: req.params.pageNumber,
+    });
+    if (error) throw error;
+
+    const commentPageNumber = value;
     const threadId = req.params.threadId;
 
-    // Approach 1 - using skip-limit
+    // Using skip-limit
     const skip = (commentPageNumber - 1) * CommentConstants.pageSize;
     const limit = CommentConstants.pageSize;
 
@@ -86,11 +108,15 @@ export const getThreadDetailByPage = async (req: Request, res: Response) => {
       })
     );
   } catch (err) {
-    res.status(400).send(err);
+    next(err);
   }
 };
 
-export const getThreadsByTopic = async (req: Request, res: Response) => {
+export const getThreadsByTopic = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const pageSize = ThreadConstants.pageSize;
     const lastId = req.query.lastId;
@@ -116,7 +142,7 @@ export const getThreadsByTopic = async (req: Request, res: Response) => {
       })
     );
   } catch (err) {
-    res.status(400).send(err);
+    next(err);
   }
 };
 
@@ -126,15 +152,13 @@ export const addCommentToThread = async (
   res: Response,
   next: NextFunction
 ) => {
-  const { error, value } = addCommentRequestValidator.validate(req.body);
-  if (error) {
-    return res.status(400).send(error);
-  }
-
   const session = await mongoose.startSession();
   session.startTransaction();
 
   try {
+    const { error, value } = addCommentRequestValidator.validate(req.body);
+    if (error) throw error;
+
     const threadId = req.params.threadId;
     const updatedMetadataThread = await Thread.findByIdAndUpdate(
       threadId,
@@ -150,8 +174,7 @@ export const addCommentToThread = async (
     );
 
     if (!updatedMetadataThread) {
-      throw new Error("COMMENT_NOT_ADDED");
-      // throw new CustomError("COMMENT_NOT_ADDED", 401);
+      throw new AppError(ThreadNotFound);
     }
 
     const newComment = new Comment({
@@ -180,17 +203,21 @@ export const addCommentToThread = async (
       })
     );
   } catch (err) {
-    console.log("reach catch");
-    await session.abortTransaction();
-    // res.status(400).send(err);
+    if (session.inTransaction()) await session.abortTransaction();
     next(err);
+  } finally {
+    await session.endSession();
   }
 };
 
-export const addReplyCommentToThread = async (req: Request, res: Response) => {
+export const addReplyCommentToThread = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   const { error, value } = addCommentRequestValidator.validate(req.body);
   if (error) {
-    return res.status(400).send(error);
+    throw error;
   }
 
   const session = await mongoose.startSession();
@@ -213,7 +240,7 @@ export const addReplyCommentToThread = async (req: Request, res: Response) => {
     );
 
     if (!updatedMetadataThread) {
-      throw new Error("COMMENT_NOT_ADDED");
+      throw new AppError(ThreadNotFound);
     }
 
     const parentComment = await Comment.findById(commentId, {
@@ -221,7 +248,7 @@ export const addReplyCommentToThread = async (req: Request, res: Response) => {
     });
 
     if (!parentComment) {
-      throw new Error("PARENT_COMMENT_NOT_FOUND");
+      throw new AppError(ParentCommentNotFound);
     }
 
     const newComment = new Comment({
@@ -259,7 +286,9 @@ export const addReplyCommentToThread = async (req: Request, res: Response) => {
       })
     );
   } catch (err) {
-    await session.abortTransaction();
-    res.status(400).send(err);
+    if (session.inTransaction()) await session.abortTransaction();
+    next(err);
+  } finally {
+    await session.endSession();
   }
 };
