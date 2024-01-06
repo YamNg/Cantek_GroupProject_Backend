@@ -3,12 +3,14 @@ import "dotenv/config";
 import cors from "cors";
 import { connectToMongo } from "./config/mongoose/mongoose.js";
 import routes from "./routes/index.js";
+import cookieParser from 'cookie-parser';
 
 const app = express();
 
 // Middlewares
 app.use(express.json());
 app.use(cors());
+app.use(cookieParser());
 app.use('/', routes);
 
 const port = process.env.PORT || 3000;
