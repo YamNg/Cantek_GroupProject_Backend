@@ -3,6 +3,7 @@ import { AppError } from "../config/error/app.error.js";
 import { GenericResponseDto } from "../controller/dto/generic-response.dto.js";
 import Joi from "joi";
 import log4js from "../config/logger/log4js.js";
+import { send } from "process";
 
 const errorHandlerMiddleware: ErrorRequestHandler = (
   err: Error,
@@ -39,7 +40,12 @@ const errorHandlerMiddleware: ErrorRequestHandler = (
     );
   } else {
     // handle other unhandled error
-    res.status(500).json({ error: "Internal Server Error" });
+    res.status(500).send(
+      new GenericResponseDto({
+        isSuccess: false,
+        errorCode: "INTERNAL_SERVER_ERROR",
+      })
+    );
   }
 };
 
