@@ -41,6 +41,7 @@
     "log4js": "^6.9.1",
     "mongoose": "^8.0.3",
     "rimraf": "^5.0.5",
-    "swagger-ui-express": "^5.0.0"
+    "swagger-ui-express": "^5.0.0",
+    "yallist": "^4.0.0"
   }
 }
