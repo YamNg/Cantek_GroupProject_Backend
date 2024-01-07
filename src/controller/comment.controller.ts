@@ -1,10 +1,21 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { Comment } from "../config/mongoose/models/comment.model.js";
 import { PersistentCommentAnalytics } from "../config/mongoose/models/comment-analytics.event.model.js";
 import { CommentAnalyticsConstants } from "../config/constant/comment.constant.js";
 import mongoose, { ClientSession } from "mongoose";
+import { GenericResponseDto } from "./dto/generic-response.dto.js";
+import { AppError } from "../config/error/app.error.js";
+import {
+  CommentNotFound,
+  CommentVoteExists,
+} from "../config/constant/app.error.contant.js";
+import { MongoServerError } from "mongodb";
 
-export const upvoteComment = async (req: Request, res: Response) => {
+export const upvoteComment = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   const commentId = req.params.commentId;
   const userId = req.body.userId;
 
@@ -17,14 +28,23 @@ export const upvoteComment = async (req: Request, res: Response) => {
       userId,
       session
     );
-    res.status(201).send(comment);
+
+    res
+      .status(201)
+      .send(new GenericResponseDto({ isSuccess: true, body: comment }));
   } catch (err) {
     await session.abortTransaction();
-    res.status(400).send(err);
+    next(err);
+  } finally {
+    await session.endSession();
   }
 };
 
-export const downvoteComment = async (req: Request, res: Response) => {
+export const downvoteComment = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   const commentId = req.params.commentId;
   const userId = req.body.userId;
 
@@ -37,10 +57,15 @@ export const downvoteComment = async (req: Request, res: Response) => {
       userId,
       session
     );
-    res.status(201).send(comment);
+
+    res
+      .status(201)
+      .send(new GenericResponseDto({ isSuccess: true, body: comment }));
   } catch (err) {
     await session.abortTransaction();
-    res.status(400).send(err);
+    next(err);
+  } finally {
+    await session.endSession();
   }
 };
 
@@ -63,18 +88,25 @@ const saveVote = async (
     }
   );
   if (!comment) {
-    throw new Error("COMMENT_NOT_FOUND");
+    throw new AppError(CommentNotFound);
   }
 
-  // as PersistentCommentAnalytics model have unique index, triggering save using same object will throw error
-  const commentAnalytics = new PersistentCommentAnalytics({
-    threadId: comment?.threadId,
-    commentId,
-    userId,
-    eventType: CommentAnalyticsConstants.vote.eventType,
-    eventValue,
-  });
-  await commentAnalytics.save({ session });
+  try {
+    // as PersistentCommentAnalytics model have unique index, triggering save using same object will throw error
+    const commentAnalytics = new PersistentCommentAnalytics({
+      threadId: comment?.threadId,
+      commentId,
+      userId,
+      eventType: CommentAnalyticsConstants.vote.eventType,
+      eventValue,
+    });
+    await commentAnalytics.save({ session });
+  } catch (error: any) {
+    if (error instanceof MongoServerError) {
+      if (error.code === 11000) throw new AppError(CommentVoteExists);
+    }
+    throw error;
+  }
 
   await session.commitTransaction();
 
