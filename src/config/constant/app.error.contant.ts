@@ -51,15 +51,15 @@ export const UserNotFound: IAppErrorConstant = {
   message: "Cannot find the user in server"
 }
 
-export const EmailOccupied: IAppErrorConstant = {
+export const UserEmailOccupied: IAppErrorConstant = {
   statusCode: 400,
   errorCode: "EMAIL_OCCUPIED",
   message: "Email is already registered"
 }
 
-export const IncorrectEmailOrPassword: IAppErrorConstant = {
+export const IncorrectUserEmailOrPassword: IAppErrorConstant = {
   statusCode: 400,
-  errorCode: "INCORRECT_EMAIL_OR_PASSWORD",
+  errorCode: "INCORRECT_USER_EMAIL_OR_PASSWORD",
   message: "Incorrect email or password"
 }
 
@@ -69,8 +69,8 @@ export const InvalidUsername: IAppErrorConstant = {
   message: "Invalid username"
 }
 
-export const InvalidEmailOrPassword: IAppErrorConstant = {
+export const InvalidUserEmailOrPassword: IAppErrorConstant = {
   statusCode: 400,
-  errorCode: "INVALID_EMAIL_OR_PASSWORD",
+  errorCode: "INVALID_USER_EMAIL_OR_PASSWORD",
   message: "login credential format do not meet system requirement"
 }

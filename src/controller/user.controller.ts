@@ -5,19 +5,19 @@ import { generateSalt, hashPassword } from "./services/user-password.service.js"
 import jwt from "jsonwebtoken";
 import { usernameValidator } from "./validator/user-name.validator.js";
 import { AppError } from "../config/error/app.error.js";
-import { EmailOccupied, IncorrectEmailOrPassword, InvalidEmailOrPassword, InvalidUsername, UserNotFound } from "../config/constant/app.error.contant.js";
+import { UserEmailOccupied, IncorrectUserEmailOrPassword, InvalidUserEmailOrPassword, InvalidUsername, UserNotFound } from "../config/constant/app.error.contant.js";
 import "dotenv/config";
 
 export const registerUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { error, value } = userLoginValidator.validate(req.body);
     if (error) {
-      throw new AppError(InvalidEmailOrPassword);
+      throw new AppError(InvalidUserEmailOrPassword);
     }
 
     const exitingUser = await User.findOne({email: value.email});
     if (exitingUser !== null ) {
-      throw new AppError(EmailOccupied);
+      throw new AppError(UserEmailOccupied);
     }
     const newUser = new User(value);
     const salt = generateSalt();
@@ -36,17 +36,17 @@ export const userLogin = async (req: Request, res: Response, next: NextFunction)
   try {
     const { error, value } = userLoginValidator.validate(req.body);
     if (error) {
-      throw new AppError(InvalidEmailOrPassword);
+      throw new AppError(InvalidUserEmailOrPassword);
     }
 
     const user = await User.findOne({ email: value.email});
     if (!user) {
-      throw new AppError(IncorrectEmailOrPassword);
+      throw new AppError(IncorrectUserEmailOrPassword);
     }
 
     const inputHash = await hashPassword(value.password, user.salt);
     if (inputHash !== user.password) {
-      throw new AppError(IncorrectEmailOrPassword);
+      throw new AppError(IncorrectUserEmailOrPassword);
     }
     
     const token = jwt.sign(user.toObject(), `${process.env.COOKIE_KEY}`, { expiresIn: "365d"});

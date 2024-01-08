@@ -13,6 +13,7 @@ app.use(express.json());
 app.use(cors());
 app.use(cookieParser());
 app.use('/', routes);
+app.use(errorHandlerMiddleware);
 
 const port = process.env.PORT || 3000;
 

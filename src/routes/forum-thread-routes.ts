@@ -6,6 +6,7 @@ import {
   addCommentToThread,
   addReplyCommentToThread,
 } from "../controller/thread.controller.js";
+import { userCookieAuth } from "../middleware/user-cookie-auth.middleware.js";
 
 const router = express.Router();
 
@@ -18,7 +19,7 @@ router.post("/", addThread);
 router.get("/all/topic/:topicId", getThreadsByTopic);
 router.get("/:threadId/page/:pageNumber", getThreadDetailByPage);
 
-router.post("/:threadId/comment", addCommentToThread);
-router.post("/:threadId/comment/:commentId/reply", addReplyCommentToThread);
+router.post("/:threadId/comment", userCookieAuth, addCommentToThread);
+router.post("/:threadId/comment/:commentId/reply", userCookieAuth, addReplyCommentToThread);
 
 export default router;
