@@ -17,7 +17,7 @@ interface IUser extends Document {
 const UserSchema: Schema = new Schema(
   {
     userNo: {type: Number},
-    username: { type: String },
+    username: { type: String, default: null },
     email: { type: String, required: true },
     password: {type: String},
     salt: { type: String },

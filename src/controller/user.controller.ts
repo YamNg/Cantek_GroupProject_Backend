@@ -44,17 +44,43 @@ export const userLogin = async (req: Request, res: Response, next: NextFunction)
       throw new AppError(IncorrectUserEmailOrPassword);
     }
 
-    const inputHash = await hashPassword(value.password, user.salt);
+    const inputHash = hashPassword(value.password, user.salt);
     if (inputHash !== user.password) {
       throw new AppError(IncorrectUserEmailOrPassword);
     }
     
-    const token = jwt.sign(user.toObject(), `${process.env.COOKIE_KEY}`, { expiresIn: "365d"});
-    res.cookie("token", token, {httpOnly: true, secure: false});
+    const accessToken = jwt.sign(user.toObject(), `${process.env.ACCESS_TOKEN_SECRET}`, { expiresIn: "15m"});
+    const refreshToken = jwt.sign(user.toObject(), `${process.env.REFRESH_TOKEN_SECRET}`, { expiresIn: "24h"});
 
-    res.status(200).send('login');
+    // set secure to true in production so only https can connect
+    // secure: false, both http, https can connect
+    res.cookie("accessToken", accessToken, {httpOnly: true, secure: false});
+    res.cookie("refreshToken", refreshToken, {httpOnly: true, secure: false});
+
+    res.status(200).send('login success');
   } catch (err) {
     next(err);
+  }
+};
+
+// let frontend handle access token expired
+// currently not in use, backend handled acess token expired
+export const refreshAccessToken = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const refreshToken = req.cookies.refreshToken;
+
+    if (!refreshToken) {
+      return next({ status: 401, message: "Unauthorized" });
+    }
+
+    const user = jwt.verify(refreshToken, `${process.env.REFRESH_TOKEN_SECRET}`);
+    const newAccessToken = jwt.sign(user, `${process.env.ACCESS_TOKEN_SECRET}`, { expiresIn: "15m"});
+    res.cookie("accessToken", newAccessToken, {httpOnly: true, secure: false});
+    
+    req.user = user;
+    next();
+  } catch (err) {
+    return next(err);
   }
 };
 
@@ -65,7 +91,11 @@ export const updateUserName = async (req: Request, res: Response, next: NextFunc
       throw new AppError(InvalidUsername);
     }
 
-    const user = await User.findOneAndUpdate({email: req.user.email});
+    const user = await User.findOneAndUpdate({ email: req.user.email }, { username: req.body.username }, { new: true });
+    if (!user) {
+      throw new AppError(IncorrectUserEmailOrPassword);
+    }
+
     res.status(200).send(user);
   } catch (err) {
     next(err);
