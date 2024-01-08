@@ -43,3 +43,34 @@ export const ThreadNotFound: IAppErrorConstant = {
   errorCode: "THREAD_NOT_FOUND",
   message: "Related thread not found, action aborted",
 };
+
+/* User related error */
+export const UserNotFound: IAppErrorConstant = {
+  statusCode: 400,
+  errorCode: "USER_NOT_FOUND",
+  message: "Cannot find the user in server"
+}
+
+export const UserEmailOccupied: IAppErrorConstant = {
+  statusCode: 400,
+  errorCode: "EMAIL_OCCUPIED",
+  message: "Email is already registered"
+}
+
+export const IncorrectUserEmailOrPassword: IAppErrorConstant = {
+  statusCode: 400,
+  errorCode: "INCORRECT_USER_EMAIL_OR_PASSWORD",
+  message: "Incorrect email or password"
+}
+
+export const InvalidUsername: IAppErrorConstant = {
+  statusCode: 400,
+  errorCode: "INVALID_USERNAME",
+  message: "Invalid username"
+}
+
+export const InvalidUserEmailOrPassword: IAppErrorConstant = {
+  statusCode: 400,
+  errorCode: "INVALID_USER_EMAIL_OR_PASSWORD",
+  message: "login credential format do not meet system requirement"
+}
