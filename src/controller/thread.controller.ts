@@ -8,11 +8,9 @@ import { ThreadConstants } from "../config/constant/thread.constant.js";
 import { ThreadDto, ThreadListItemDto } from "./dto/thread.dto.js";
 import { CommentConstants } from "../config/constant/comment.constant.js";
 import { GenericResponseDto } from "./dto/generic-response.dto.js";
-import Joi from "joi";
 import { commentPageNumberValidator } from "./validator/comment-request.validator.js";
 import { AppError } from "../config/error/app.error.js";
 import {
-  CommentNotFound,
   ParentCommentNotFound,
   ThreadNotFound,
 } from "../config/constant/app.error.contant.js";
@@ -243,8 +241,9 @@ export const addReplyCommentToThread = async (
       throw new AppError(ThreadNotFound);
     }
 
-    const parentComment = await Comment.findById(commentId, {
-      query: { active: true },
+    const parentComment = await Comment.findOne({
+      _id: commentId,
+      active: true,
     });
 
     if (!parentComment) {
@@ -257,7 +256,7 @@ export const addReplyCommentToThread = async (
       content: value.content,
       userId: value.userId,
       metadata: {
-        ancestor: [...(parentComment?.metadata.ancestor ?? []), commentId],
+        ancestor: [commentId, ...(parentComment?.metadata.ancestor ?? [])],
       },
     });
 
