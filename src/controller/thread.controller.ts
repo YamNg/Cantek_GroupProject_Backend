@@ -110,6 +110,40 @@ export const getThreadDetailByPage = async (
   }
 };
 
+export const getLatestThreads = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const pageSize = ThreadConstants.pageSize;
+    const lastId = req.query.lastId;
+
+    let query: any = { active: true };
+    if (lastId) query._id = { $lt: lastId };
+
+    const threads = await Thread.find(query)
+      .sort({
+        _id: -1,
+      })
+      .limit(pageSize)
+      .populate([
+        { path: "content" },
+        { path: "author", select: ["username"] },
+        { path: "topic" },
+      ]);
+
+    res.status(200).send(
+      new GenericResponseDto({
+        isSuccess: true,
+        body: threads.map((thread) => new ThreadListItemDto(thread)),
+      })
+    );
+  } catch (err) {
+    next(err);
+  }
+};
+
 export const getThreadsByTopic = async (
   req: Request,
   res: Response,

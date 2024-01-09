@@ -5,6 +5,7 @@ import {
   getThreadsByTopic,
   addCommentToThread,
   addReplyCommentToThread,
+  getLatestThreads,
 } from "../controller/thread.controller.js";
 
 const router = express.Router();
@@ -16,6 +17,8 @@ router.post("/", addThread);
 // query parameters:
 // - lastId > last threadId of last page loaded
 router.get("/all/topic/:topicId", getThreadsByTopic);
+router.get("/all", getLatestThreads);
+
 router.get("/:threadId/page/:pageNumber", getThreadDetailByPage);
 
 router.post("/:threadId/comment", addCommentToThread);
