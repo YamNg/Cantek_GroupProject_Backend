@@ -28,6 +28,13 @@ const ThreadSchema: Schema = new Schema(
   { timestamps: true }
 );
 
+ThreadSchema.virtual("topic", {
+  ref: "Topic",
+  localField: "topicId",
+  foreignField: "_id",
+  justOne: true,
+});
+
 ThreadSchema.virtual("author", {
   ref: "User",
   localField: "userId",

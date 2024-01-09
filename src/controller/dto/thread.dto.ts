@@ -3,6 +3,8 @@ import { CommentDto } from "./comment.dto.js";
 
 export class ThreadListItemDto {
   _id: string;
+  topicId: string;
+  topicTitle: string;
   title: string;
   vote: number;
   username: string;
@@ -10,6 +12,8 @@ export class ThreadListItemDto {
 
   constructor(threadDocument: any) {
     this._id = threadDocument._id;
+    this.topicId = threadDocument.topicId;
+    this.topicTitle = threadDocument.topic.title;
     this.title = threadDocument.title;
 
     const { upvote, downvote } = threadDocument.content.metadata;
