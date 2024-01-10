@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express"
 import jwt from "jsonwebtoken";
+import { GenericResponseDto } from "../controller/dto/generic-response.dto.js";
 
 export const userCookieAuth = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -19,8 +20,11 @@ export const userCookieAuth = async (req: Request, res: Response, next: NextFunc
         const newAccessToken = jwt.sign(user, `${process.env.ACCESS_TOKEN_SECRET}`, { expiresIn: "15m"});
         res.cookie("accessToken", newAccessToken, {httpOnly: true, secure: false});
 
-        // to be deleted
-        res.status(200).send("refresh access token");
+        res.status(200).send(
+          new GenericResponseDto({
+            isSuccess: true,
+            body: { accessToken: newAccessToken },
+        }));
       } else {
         return next(err);
       }

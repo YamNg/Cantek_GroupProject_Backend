@@ -1,12 +1,16 @@
 import { User } from "../config/mongoose/models/user.model.js";
 import { NextFunction, Request, Response } from "express";
 import { userLoginValidator } from "./validator/user-register.validator.js";
-import { generateSalt, hashPassword } from "./services/user-password.service.js";
+import { generateSalt, generateVerificationCode, hashPassword } from "./services/user.service.js";
 import jwt from "jsonwebtoken";
 import { usernameValidator } from "./validator/user-name.validator.js";
 import { AppError } from "../config/error/app.error.js";
 import { UserEmailOccupied, IncorrectUserEmailOrPassword, InvalidUserEmailOrPassword, InvalidUsername, UserNotFound } from "../config/constant/app.error.contant.js";
 import "dotenv/config";
+import { VerificationCodeTable } from "../config/mongoose/models/verification-code-table.model.js";
+import { GenericResponseDto } from "./dto/generic-response.dto.js";
+import { CookieConstants } from "../config/constant/user.constant.js";
+import { UserDto } from "./dto/user.dto.js";
 
 export const registerUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -20,13 +24,18 @@ export const registerUser = async (req: Request, res: Response, next: NextFuncti
       throw new AppError(UserEmailOccupied);
     }
     const newUser = new User(value);
+    const newCode = new VerificationCodeTable({ user: newUser, code: generateVerificationCode() });
     const salt = generateSalt();
     const encryptedPassword = hashPassword(newUser.password, salt);
     newUser.password = encryptedPassword;
     newUser.salt = salt;
 
     await newUser.save();
-    res.status(201).send(newUser);
+    res.status(201).send(
+      new GenericResponseDto({
+        isSuccess: true,
+        body: new UserDto(newUser),
+    }));
   } catch (err) {
     next(err);
   }
@@ -49,15 +58,19 @@ export const userLogin = async (req: Request, res: Response, next: NextFunction)
       throw new AppError(IncorrectUserEmailOrPassword);
     }
     
-    const accessToken = jwt.sign(user.toObject(), `${process.env.ACCESS_TOKEN_SECRET}`, { expiresIn: "15m"});
-    const refreshToken = jwt.sign(user.toObject(), `${process.env.REFRESH_TOKEN_SECRET}`, { expiresIn: "24h"});
+    const accessToken = jwt.sign(user.toObject(), `${process.env.ACCESS_TOKEN_SECRET}`, { expiresIn: CookieConstants.ACCESS_TOKEN});
+    const refreshToken = jwt.sign(user.toObject(), `${process.env.REFRESH_TOKEN_SECRET}`, { expiresIn: CookieConstants.REFRESH_TOKEN});
 
     // set secure to true in production so only https can connect
     // secure: false, both http, https can connect
     res.cookie("accessToken", accessToken, {httpOnly: true, secure: false});
     res.cookie("refreshToken", refreshToken, {httpOnly: true, secure: false});
 
-    res.status(200).send('login success');
+    res.status(200).send(
+      new GenericResponseDto({
+        isSuccess: true,
+        body: new UserDto(user),
+    }));
   } catch (err) {
     next(err);
   }
@@ -84,6 +97,14 @@ export const refreshAccessToken = async (req: Request, res: Response, next: Next
   }
 };
 
+export const verifyUserEmail = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+
+  } catch (err) {
+
+  }
+}
+
 export const updateUserName = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { error, value } = usernameValidator.validate(req.body);
@@ -91,12 +112,16 @@ export const updateUserName = async (req: Request, res: Response, next: NextFunc
       throw new AppError(InvalidUsername);
     }
 
-    const user = await User.findOneAndUpdate({ email: req.user.email }, { username: req.body.username }, { new: true });
+    const user = await User.findOneAndUpdate({ id: req.user._id }, { username: req.body.username }, { new: true });
     if (!user) {
       throw new AppError(IncorrectUserEmailOrPassword);
     }
 
-    res.status(200).send(user);
+    res.status(200).send( 
+      new GenericResponseDto({
+        isSuccess: true,
+        body: new UserDto(user),
+    }));
   } catch (err) {
     next(err);
   }

@@ -9,3 +9,7 @@ export function hashPassword(password: string, salt: string) {
   hash.update(password + salt);
   return hash.digest('hex');
 }
+
+export function generateVerificationCode() {
+  return Math.floor(Math.random() * 1000000);
+}
