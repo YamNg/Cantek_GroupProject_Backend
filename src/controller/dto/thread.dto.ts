@@ -53,11 +53,8 @@ export class ThreadDto {
     );
     this.userId = threadDocument.userId;
     this.createdAt = threadDocument.createdAt;
-    this.totalPage = Math.max(
-      Math.floor(
-        threadDocument.metadata.commentCount / ThreadConstants.pageSize
-      ),
-      1
+    this.totalPage = Math.ceil(
+      threadDocument.metadata.commentCount / ThreadConstants.pageSize
     );
   }
 }
