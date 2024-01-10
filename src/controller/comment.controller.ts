@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { Comment } from "../config/mongoose/models/comment.model.js";
 import { PersistentCommentAnalytics } from "../config/mongoose/models/comment-analytics.event.model.js";
-import { CommentAnalyticsConstants } from "../config/constant/comment.constant.js";
+import { CommentAnalyticsConstants, CommentConstants } from "../config/constant/comment.constant.js";
 import mongoose, { ClientSession } from "mongoose";
 import { GenericResponseDto } from "./dto/generic-response.dto.js";
 import { AppError } from "../config/error/app.error.js";
@@ -10,6 +10,7 @@ import {
   CommentVoteExists,
 } from "../config/constant/app.error.contant.js";
 import { MongoServerError } from "mongodb";
+import { CommentDto } from "./dto/comment.dto.js";
 
 export const upvoteComment = async (
   req: Request,
@@ -111,4 +112,31 @@ const saveVote = async (
   await session.commitTransaction();
 
   return comment;
+};
+
+
+export const getCommentsByBatch = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const batchIds: string[] = req.body.commentIds;
+
+    const batchComments = await Comment.find(
+      { _id: { $in: batchIds }, active: true }
+    );
+
+    const batchArray = batchComments.map(comment => new CommentDto(comment));
+
+    res.status(200).send(
+      new GenericResponseDto({
+        isSuccess: true,
+        body: batchArray
+      })
+    );
+    
+  } catch (err) {
+    next(err);
+  }
 };
