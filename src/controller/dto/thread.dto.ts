@@ -43,6 +43,7 @@ export class ThreadDto {
   userId: string;
   createdAt: Date;
   totalPage: number;
+  pageSize: number;
 
   constructor(threadDocument: any) {
     this._id = threadDocument._id;
@@ -56,5 +57,6 @@ export class ThreadDto {
     this.totalPage = Math.ceil(
       threadDocument.metadata.commentCount / ThreadConstants.pageSize
     );
+    this.pageSize = ThreadConstants.pageSize;
   }
 }
