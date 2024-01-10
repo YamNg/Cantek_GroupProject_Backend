@@ -11,6 +11,6 @@ const router = express.Router();
 router.post("/:commentId/upvote", upvoteComment);
 router.post("/:commentId/downvote", downvoteComment);
 
-router.post("/batch", getCommentsByBatch);
+router.get("/batch", getCommentsByBatch);
 
 export default router;
