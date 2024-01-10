@@ -3,7 +3,7 @@ import { CommentDto } from "./comment.dto.js";
 import { TopicDto } from "./topic.dto.js";
 
 export class ThreadListDto {
-  topic: TopicDto;
+  topic?: TopicDto;
   threads: ThreadListItemDto[];
 
   constructor(threadDocument: any) {

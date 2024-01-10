@@ -140,10 +140,14 @@ export const getLatestThreads = async (
         { path: "topic" },
       ]);
 
+    const body: ThreadListDto = {
+      threads: threads.map((thread) => new ThreadListItemDto(thread)),
+    };
+
     res.status(200).send(
       new GenericResponseDto({
         isSuccess: true,
-        body: threads.map((thread) => new ThreadListItemDto(thread)),
+        body,
       })
     );
   } catch (err) {
