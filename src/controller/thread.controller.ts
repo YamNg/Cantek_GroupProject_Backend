@@ -5,7 +5,11 @@ import { addThreadRequestValidator } from "./validator/thread-request.validator.
 import { addCommentRequestValidator } from "./validator/comment-request.validator.js";
 import mongoose from "mongoose";
 import { ThreadConstants } from "../config/constant/thread.constant.js";
-import { ThreadDto, ThreadListItemDto } from "./dto/thread.dto.js";
+import {
+  ThreadDto,
+  ThreadListDto,
+  ThreadListItemDto,
+} from "./dto/thread.dto.js";
 import { CommentConstants } from "../config/constant/comment.constant.js";
 import { GenericResponseDto } from "./dto/generic-response.dto.js";
 import { commentPageNumberValidator } from "./validator/comment-request.validator.js";
@@ -13,7 +17,10 @@ import { AppError } from "../config/error/app.error.js";
 import {
   ParentCommentNotFound,
   ThreadNotFound,
+  TopicNotFound,
 } from "../config/constant/app.error.contant.js";
+import { TopicDto } from "./dto/topic.dto.js";
+import { Topic } from "../config/mongoose/models/topic.model.js";
 
 /* Threads related Operations */
 export const addThread = async (
@@ -157,6 +164,9 @@ export const getThreadsByTopic = async (
     let query: any = { active: true, topicId };
     if (lastId) query._id = { $lt: lastId };
 
+    const topic = await Topic.findOne({ _id: topicId, active: true });
+    if (!topic) throw new AppError(TopicNotFound);
+
     const threads = await Thread.find(query)
       .sort({
         _id: -1,
@@ -167,10 +177,15 @@ export const getThreadsByTopic = async (
         { path: "author", select: ["username"] },
       ]);
 
+    const body: ThreadListDto = {
+      topic: new TopicDto(topic),
+      threads: threads.map((thread) => new ThreadListItemDto(thread)),
+    };
+
     res.status(200).send(
       new GenericResponseDto({
         isSuccess: true,
-        body: threads.map((thread) => new ThreadListItemDto(thread)),
+        body,
       })
     );
   } catch (err) {
