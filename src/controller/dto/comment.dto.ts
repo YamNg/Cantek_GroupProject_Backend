@@ -15,13 +15,13 @@ export class CommentDto {
     this._id = commentDocument._id;
     this.threadId = commentDocument.threadId;
     this.threadCommentNum = commentDocument.threadCommentNum;
-    this.upvote = commentDocument.metadata.upvote;
-    this.downvote = commentDocument.metadata.downvote;
-    this.ancestor = commentDocument.metadata.ancestor;
-    this.children = commentDocument.metadata.children;
+    this.upvote = commentDocument.metadata?.upvote;
+    this.downvote = commentDocument.metadata?.downvote;
+    this.ancestor = commentDocument.metadata?.ancestor;
+    this.children = commentDocument.metadata?.children;
     this.content = commentDocument.content;
-    this.author = commentDocument.author.username;
-    this.authorId = commentDocument.author._id;
+    this.author = commentDocument.author?.username;
+    this.authorId = commentDocument.author?._id;
     this.createdAt = commentDocument.createdAt;
   }
 }
