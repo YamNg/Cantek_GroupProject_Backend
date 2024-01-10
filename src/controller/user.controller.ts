@@ -90,7 +90,7 @@ export const refreshAccessToken = async (req: Request, res: Response, next: Next
     const newAccessToken = jwt.sign(user, `${process.env.ACCESS_TOKEN_SECRET}`, { expiresIn: "15m"});
     res.cookie("accessToken", newAccessToken, {httpOnly: true, secure: false});
     
-    req.user = user;
+    req.user = new UserDto(user);
     next();
   } catch (err) {
     return next(err);
@@ -111,8 +111,8 @@ export const updateUserName = async (req: Request, res: Response, next: NextFunc
     if (error) {
       throw new AppError(InvalidUsername);
     }
-
-    const user = await User.findOneAndUpdate({ id: req.user._id }, { username: req.body.username }, { new: true });
+    
+    const user = await User.findOneAndUpdate({ _id: req.user.userId }, { username: req.body.username }, { new: true });
     if (!user) {
       throw new AppError(IncorrectUserEmailOrPassword);
     }

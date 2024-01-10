@@ -1,10 +1,10 @@
 export class UserDto {
-  _id: string;
+  userId: string;
   username: string;
   userNo: Number;
 
   constructor(userDocument: any) {
-    this._id = userDocument._id;
+    this.userId = userDocument._id;
     this.username = userDocument.username;
     this.userNo = userDocument.userNo;
   }

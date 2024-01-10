@@ -74,3 +74,16 @@ export const InvalidUserEmailOrPassword: IAppErrorConstant = {
   errorCode: "INVALID_USER_EMAIL_OR_PASSWORD",
   message: "login credential format do not meet system requirement"
 }
+
+/* middleware error */
+export const MissingToken: IAppErrorConstant = {
+  statusCode: 400,
+  errorCode: "MISSING_TOKEN",
+  message: "missing access token or refresh token"
+}
+
+export const TokenVerificationError: IAppErrorConstant = {
+  statusCode: 400,
+  errorCode: "TOKEN_VERIFICATION_ERROR",
+  message: "unable to verify or refresh token"
+}

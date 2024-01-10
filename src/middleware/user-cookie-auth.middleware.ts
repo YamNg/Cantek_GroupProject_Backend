@@ -1,6 +1,9 @@
 import { Request, Response, NextFunction } from "express"
-import jwt from "jsonwebtoken";
+import jwt, { TokenExpiredError } from "jsonwebtoken";
 import { GenericResponseDto } from "../controller/dto/generic-response.dto.js";
+import { AppError } from "../config/error/app.error.js";
+import { MissingToken, TokenVerificationError } from "../config/constant/app.error.contant.js";
+import { UserDto } from "../controller/dto/user.dto.js";
 
 export const userCookieAuth = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -8,7 +11,7 @@ export const userCookieAuth = async (req: Request, res: Response, next: NextFunc
     const refreshToken = req.cookies.refreshToken;
 
     if (!accessToken && !refreshToken) {
-      return next({ status: 401, message: "Unauthorized" });
+      throw new AppError(MissingToken);
     }
 
     let user;
@@ -26,16 +29,16 @@ export const userCookieAuth = async (req: Request, res: Response, next: NextFunc
             body: { accessToken: newAccessToken },
         }));
       } else {
-        return next(err);
+        throw new AppError(TokenVerificationError);
       }
     }
     
     // the user is converted into plain javascript object, no longer a mongoose document
-    req.user = user;
+    req.user = new UserDto(user);
     next();
   } catch (err) {
     res.clearCookie("accessToken");
     res.clearCookie("refreshToken");
-    return next({ status: 401, message: "Cookie timed out or wrong" });
+    next(err);
   }
 }
