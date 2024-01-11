@@ -181,7 +181,7 @@ export const addCommentToThread = async (
       threadId: threadId,
       threadCommentNum: updatedMetadataThread?.metadata.commentCount,
       content: value.content,
-      userId: value.user.userId,
+      userId: req.user.userId,
     });
 
     const { _id: savedCommentId } = await newComment.save({ session });
@@ -255,7 +255,7 @@ export const addReplyCommentToThread = async (
       threadId: threadId,
       threadCommentNum: updatedMetadataThread?.metadata.commentCount,
       content: value.content,
-      userId: value.user.userId,
+      userId: req.user.userId,
       metadata: {
         ancestor: [...(parentComment?.metadata.ancestor ?? []), commentId],
       },
