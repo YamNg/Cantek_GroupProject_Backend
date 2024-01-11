@@ -88,8 +88,8 @@ export const getThreadDetailByPage = async (
     });
     if (error) throw error;
 
-    const commentPageNumber = value;
-    const threadId = req.params.threadId;
+    const { threadId, pageNumber } = req.params;
+    const commentPageNumber = pageNumber ? Number(pageNumber) : 1;
 
     // Using skip-limit
     const skip = (commentPageNumber - 1) * CommentConstants.pageSize;
