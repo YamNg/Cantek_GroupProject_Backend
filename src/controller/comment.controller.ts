@@ -18,7 +18,7 @@ export const upvoteComment = async (
   next: NextFunction
 ) => {
   const commentId = req.params.commentId;
-  const userId = req.body.userId;
+  const userId = req.user.userId;
 
   const session = await mongoose.startSession();
 
@@ -47,7 +47,7 @@ export const downvoteComment = async (
   next: NextFunction
 ) => {
   const commentId = req.params.commentId;
-  const userId = req.body.userId;
+  const userId = req.user.userId;
 
   const session = await mongoose.startSession();
 

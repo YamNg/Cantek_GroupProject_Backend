@@ -1,9 +1,15 @@
 import express from "express";
-import { addUser } from "../controller/user.controller.js";
+import {
+  registerUser,
+  updateUserName,
+  userLogin,
+} from "../controller/user.controller.js";
+import { userCookieAuth } from "../middleware/user-cookie-auth.middleware.js";
 
 const router = express.Router();
-
-// add a User
-router.post("/", addUser);
+router.post("/login", userLogin);
+router.post("/register", registerUser);
+router.patch("/update-username", userCookieAuth, updateUserName);
+// router.post('/profile', userCookieAuth, getUserProfile);
 
 export default router;

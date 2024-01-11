@@ -41,7 +41,7 @@ export const addThread = async (
     const newThread = new Thread({
       topicId: value.topicId,
       title: value.title,
-      userId: value.userId,
+      userId: req.user.userId,
     });
 
     const { _id: savedThreadId } = await newThread.save({ session });
@@ -50,7 +50,7 @@ export const addThread = async (
       threadId: savedThreadId,
       threadCommentNum: 1,
       content: value.content,
-      userId: value.userId,
+      userId: req.user.userId,
     });
 
     const { _id: savedCommentId } = await newComment.save({ session });
@@ -232,7 +232,7 @@ export const addCommentToThread = async (
       threadId: threadId,
       threadCommentNum: updatedMetadataThread?.metadata.commentCount,
       content: value.content,
-      userId: value.userId,
+      userId: req.user.userId,
     });
 
     const { _id: savedCommentId } = await newComment.save({ session });
@@ -307,7 +307,7 @@ export const addReplyCommentToThread = async (
       threadId: threadId,
       threadCommentNum: updatedMetadataThread?.metadata.commentCount,
       content: value.content,
-      userId: value.userId,
+      userId: req.user.userId,
       metadata: {
         ancestor: [commentId, ...(parentComment?.metadata.ancestor ?? [])],
       },

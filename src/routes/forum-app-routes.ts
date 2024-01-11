@@ -5,11 +5,12 @@ import sectionRoutes from "./forum-section-routes.js";
 import topicRoutes from "./forum-topic-routes.js";
 import threadRoutes from "./forum-thread-routes.js";
 import commentRoutes from "./forum-comment-routes.js";
+import { userCookieAuth } from "../middleware/user-cookie-auth.middleware.js";
 
 const router = express.Router();
 
-router.use("/admin/section", adminSectionRoutes);
-router.use("/admin/topic", adminTopicRoutes);
+router.use("/admin/section", userCookieAuth,adminSectionRoutes);
+router.use("/admin/topic", userCookieAuth, adminTopicRoutes);
 
 router.use("/section", sectionRoutes);
 router.use("/topic", topicRoutes);
