@@ -84,12 +84,12 @@ export const userLogin = async (
     }
 
     const accessToken = jwt.sign(
-      user.toObject(),
+      { _id: user._id, username: user.username, userNo: user.userNo },
       `${process.env.ACCESS_TOKEN_SECRET}`,
       { expiresIn: CookieConstants.ACCESS_TOKEN }
     );
     const refreshToken = jwt.sign(
-      user.toObject(),
+      { _id: user._id, username: user.username, userNo: user.userNo },
       `${process.env.REFRESH_TOKEN_SECRET}`,
       { expiresIn: CookieConstants.REFRESH_TOKEN }
     );
@@ -98,7 +98,6 @@ export const userLogin = async (
     // secure: false, both http, https can connect
     res.cookie("accessToken", accessToken, { httpOnly: true, secure: false });
     res.cookie("refreshToken", refreshToken, { httpOnly: true, secure: false });
-
     res.status(200).send(
       new GenericResponseDto({
         isSuccess: true,
@@ -111,7 +110,7 @@ export const userLogin = async (
 };
 
 // let frontend handle access token expired
-// currently not in use, backend handled acess token expired
+// currently not in use, backend handled access token expired
 export const refreshAccessToken = async (
   req: Request,
   res: Response,
@@ -131,7 +130,7 @@ export const refreshAccessToken = async (
     const newAccessToken = jwt.sign(
       user,
       `${process.env.ACCESS_TOKEN_SECRET}`,
-      { expiresIn: "15m" }
+      { expiresIn: CookieConstants.ACCESS_TOKEN }
     );
     res.cookie("accessToken", newAccessToken, {
       httpOnly: true,
