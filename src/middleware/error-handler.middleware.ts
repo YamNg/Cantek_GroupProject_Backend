@@ -40,6 +40,7 @@ const errorHandlerMiddleware: ErrorRequestHandler = (
     );
   } else {
     // handle other unhandled error
+    console.log("unknown error:" + err);
     res.status(500).send(
       new GenericResponseDto({
         isSuccess: false,
