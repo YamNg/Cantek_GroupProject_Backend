@@ -153,6 +153,20 @@ export const verifyUserEmail = async (
   } catch (err) {}
 };
 
+export const verifyUserCookies = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    res.status(200).send(
+      new GenericResponseDto({
+        isSuccess: true,
+      })
+    );
+  } catch (err) {}
+};
+
 export const updateUserName = async (
   req: Request,
   res: Response,
