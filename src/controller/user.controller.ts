@@ -84,12 +84,12 @@ export const userLogin = async (
     }
 
     const accessToken = jwt.sign(
-      { userId: user._id },
+      { _id: user._id, username: user.username, userNo: user.userNo },
       `${process.env.ACCESS_TOKEN_SECRET}`,
       { expiresIn: CookieConstants.ACCESS_TOKEN }
     );
     const refreshToken = jwt.sign(
-      { userId: user._id },
+      { _id: user._id, username: user.username, userNo: user.userNo },
       `${process.env.REFRESH_TOKEN_SECRET}`,
       { expiresIn: CookieConstants.REFRESH_TOKEN }
     );

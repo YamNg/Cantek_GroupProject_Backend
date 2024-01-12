@@ -31,9 +31,9 @@ export const userCookieAuth = async (
         user = jwt.verify(
           refreshToken,
           `${process.env.REFRESH_TOKEN_SECRET}`
-        ) as any;
+        ) as UserDto;
         const newAccessToken = jwt.sign(
-          { userId: user._id },
+          { _id: user.userId, username: user.username, userNo: user.userNo },
           `${process.env.ACCESS_TOKEN_SECRET}`,
           { expiresIn: CookieConstants.ACCESS_TOKEN }
         );
@@ -59,7 +59,7 @@ export const userCookieAuth = async (
           errorMsg: err.message,
         })
       );
-    } else if (err instanceof JsonWebTokenError) {
+    } else if (err instanceof jwt.JsonWebTokenError) {
       new GenericResponseDto({
         isSuccess: false,
         errorCode: "400",
