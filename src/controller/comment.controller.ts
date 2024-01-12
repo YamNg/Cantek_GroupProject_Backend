@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { Comment } from "../config/mongoose/models/comment.model.js";
 import { PersistentCommentAnalytics } from "../config/mongoose/models/comment-analytics.event.model.js";
-import { CommentAnalyticsConstants, CommentConstants } from "../config/constant/comment.constant.js";
+import { CommentAnalyticsConstants } from "../config/constant/comment.constant.js";
 import mongoose, { ClientSession } from "mongoose";
 import { GenericResponseDto } from "./dto/generic-response.dto.js";
 import { AppError } from "../config/error/app.error.js";
@@ -114,7 +114,6 @@ const saveVote = async (
   return comment;
 };
 
-
 export const getCommentsByBatch = async (
   req: Request,
   res: Response,
@@ -123,19 +122,21 @@ export const getCommentsByBatch = async (
   try {
     const batchIds: string[] = req.body.commentIds;
 
-    const batchComments = await Comment.find(
-      { _id: { $in: batchIds }, active: true }
-    );
+    const batchComments = await Comment.find({
+      _id: { $in: batchIds },
+      active: true,
+    }).sort({
+      _id: -1,
+    });
 
-    const batchArray = batchComments.map(comment => new CommentDto(comment));
+    const batchArray = batchComments.map((comment) => new CommentDto(comment));
 
     res.status(200).send(
       new GenericResponseDto({
         isSuccess: true,
-        body: batchArray
+        body: batchArray,
       })
     );
-    
   } catch (err) {
     next(err);
   }
