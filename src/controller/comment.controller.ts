@@ -32,7 +32,12 @@ export const upvoteComment = async (
 
     res
       .status(201)
-      .send(new GenericResponseDto({ isSuccess: true, body: comment }));
+      .send(
+        new GenericResponseDto({
+          isSuccess: true,
+          body: new CommentDto(comment),
+        })
+      );
   } catch (err) {
     await session.abortTransaction();
     next(err);
@@ -61,7 +66,12 @@ export const downvoteComment = async (
 
     res
       .status(201)
-      .send(new GenericResponseDto({ isSuccess: true, body: comment }));
+      .send(
+        new GenericResponseDto({
+          isSuccess: true,
+          body: new CommentDto(comment),
+        })
+      );
   } catch (err) {
     await session.abortTransaction();
     next(err);
