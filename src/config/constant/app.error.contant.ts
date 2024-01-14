@@ -51,10 +51,10 @@ export const UserNotFound: IAppErrorConstant = {
   message: "Cannot find the user in server",
 };
 
-export const UserEmailOccupied: IAppErrorConstant = {
+export const UserIdOccupied: IAppErrorConstant = {
   statusCode: 400,
-  errorCode: "EMAIL_OCCUPIED",
-  message: "Email is already registered",
+  errorCode: "USERID_OCCUPIED",
+  message: "User Name or Email is already registered",
 };
 
 export const IncorrectUserEmailOrPassword: IAppErrorConstant = {

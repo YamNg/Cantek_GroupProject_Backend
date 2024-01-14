@@ -13,7 +13,7 @@ import jwt from "jsonwebtoken";
 import { usernameValidator } from "./validator/user-name.validator.js";
 import { AppError } from "../config/error/app.error.js";
 import {
-  UserEmailOccupied,
+  UserIdOccupied,
   IncorrectUserEmailOrPassword,
   InvalidUserEmailOrPassword,
   InvalidUsername,
@@ -35,10 +35,11 @@ export const registerUser = async (
     if (error) {
       throw error;
     }
-
-    const exitingUser = await User.findOne({ email: value.email });
-    if (exitingUser !== null) {
-      throw new AppError(UserEmailOccupied);
+    const existingUser = await User.findOne({
+      $or: [{ email: value.email }, { username: value.username }],
+    });
+    if (existingUser) {
+      throw new AppError(UserIdOccupied);
     }
     const newUser = new User(value);
     const newCode = new VerificationCodeTable({
