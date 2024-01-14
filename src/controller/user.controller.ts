@@ -109,6 +109,34 @@ export const userLogin = async (
   }
 };
 
+export const userLogout = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const user = await User.findOneAndUpdate(
+      { _id: req.user.userId },
+      { isLogin: false },
+      { new: true }
+    );
+
+    if (!user) {
+      throw new AppError(UserNotFound);
+    }
+
+    res.clearCookie("accessToken");
+    res.clearCookie("refreshToken");
+    res.status(200).send(
+      new GenericResponseDto({
+        isSuccess: true,
+      })
+    );
+  } catch (err) {
+    next(err);
+  }
+};
+
 // let frontend handle access token expired
 // currently not in use, backend handled access token expired
 export const refreshAccessToken = async (

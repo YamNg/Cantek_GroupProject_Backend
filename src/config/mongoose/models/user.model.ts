@@ -12,21 +12,23 @@ interface IUser extends Document {
   followedUsers: mongoose.Types.ObjectId[];
   blockedUsers: mongoose.Types.ObjectId[];
   isVerified: boolean;
+  isLogin: boolean;
 }
 
 const UserSchema: Schema = new Schema(
   {
-    userNo: {type: Number},
+    userNo: { type: Number },
     username: { type: String, default: null },
     email: { type: String, required: true },
-    password: {type: String},
+    password: { type: String },
     salt: { type: String },
-    threads: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Thread' }],
-    comments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Comment' }],
-    savedThreads: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Thread' }],
-    followedUsers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-    blockedUsers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-    isVerified: { type: Boolean, default: false},
+    threads: [{ type: mongoose.Schema.Types.ObjectId, ref: "Thread" }],
+    comments: [{ type: mongoose.Schema.Types.ObjectId, ref: "Comment" }],
+    savedThreads: [{ type: mongoose.Schema.Types.ObjectId, ref: "Thread" }],
+    followedUsers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    blockedUsers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    isVerified: { type: Boolean, default: false },
+    isLogin: { type: Boolean, default: false },
   },
   { timestamps: true }
 );
