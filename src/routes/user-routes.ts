@@ -10,7 +10,7 @@ import { userCookieAuth } from "../middleware/user-cookie-auth.middleware.js";
 
 const router = express.Router();
 router.post("/login", userLogin);
-router.post("/logout", userLogout);
+router.post("/logout", userCookieAuth, userLogout);
 router.post("/register", registerUser);
 router.patch("/update-username", userCookieAuth, updateUserName);
 router.get("/verify", userCookieAuth, verifyUserCookies);
