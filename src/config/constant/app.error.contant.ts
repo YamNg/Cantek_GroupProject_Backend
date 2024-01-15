@@ -57,6 +57,12 @@ export const UserIdOccupied: IAppErrorConstant = {
   message: "User Name or Email is already registered",
 };
 
+export const UserMultipleLogin: IAppErrorConstant = {
+  statusCode: 400,
+  errorCode: "MULTIPLE_LOGIN",
+  message: "User is login on other browser already",
+};
+
 export const IncorrectUserEmailOrPassword: IAppErrorConstant = {
   statusCode: 400,
   errorCode: "INCORRECT_USER_EMAIL_OR_PASSWORD",

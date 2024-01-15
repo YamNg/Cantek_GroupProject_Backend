@@ -1,4 +1,5 @@
 import mongoose, { Schema, Document } from "mongoose";
+import { UserStatus } from "../../constant/user.constant.js";
 
 interface IUser extends Document {
   userNo: Number;
@@ -12,7 +13,7 @@ interface IUser extends Document {
   followedUsers: mongoose.Types.ObjectId[];
   blockedUsers: mongoose.Types.ObjectId[];
   isVerified: boolean;
-  isLogin: boolean;
+  status: string;
 }
 
 const UserSchema: Schema = new Schema(
@@ -28,7 +29,7 @@ const UserSchema: Schema = new Schema(
     followedUsers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     blockedUsers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     isVerified: { type: Boolean, default: false },
-    isLogin: { type: Boolean, default: false },
+    status: { type: String, default: UserStatus.LOGOUT },
   },
   { timestamps: true }
 );

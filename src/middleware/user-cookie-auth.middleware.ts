@@ -49,8 +49,8 @@ export const userCookieAuth = async (
     req.user = new UserDto(user);
     next();
   } catch (err) {
-    // res.clearCookie("accessToken");
-    // res.clearCookie("refreshToken");
+    res.clearCookie("accessToken");
+    res.clearCookie("refreshToken");
     if (err instanceof AppError) {
       res.status(err.statusCode).send(
         new GenericResponseDto({

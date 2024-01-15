@@ -18,11 +18,15 @@ import {
   InvalidUserEmailOrPassword,
   InvalidUsername,
   UserNotFound,
+  UserMultipleLogin,
 } from "../config/constant/app.error.contant.js";
 import "dotenv/config";
 import { VerificationCodeTable } from "../config/mongoose/models/verification-code-table.model.js";
 import { GenericResponseDto } from "./dto/generic-response.dto.js";
-import { CookieConstants } from "../config/constant/user.constant.js";
+import {
+  CookieConstants,
+  UserStatus,
+} from "../config/constant/user.constant.js";
 import { UserDto } from "./dto/user.dto.js";
 
 export const registerUser = async (
@@ -79,10 +83,19 @@ export const userLogin = async (
       throw new AppError(IncorrectUserEmailOrPassword);
     }
 
+    // if (user.status == UserStatus.LOGIN) {
+    //   throw new AppError(UserMultipleLogin);
+    // }
+
     const inputHash = hashPassword(value.password, user.salt);
     if (inputHash !== user.password) {
       throw new AppError(IncorrectUserEmailOrPassword);
     }
+
+    await User.findOneAndUpdate(
+      { _id: user._id },
+      { status: UserStatus.LOGIN }
+    );
 
     const accessToken = jwt.sign(
       { _id: user._id, username: user.username, userNo: user.userNo },
@@ -118,7 +131,7 @@ export const userLogout = async (
   try {
     const user = await User.findOneAndUpdate(
       { _id: req.user.userId },
-      { isLogin: false },
+      { status: UserStatus.LOGOUT },
       { new: true }
     );
 
@@ -173,14 +186,14 @@ export const refreshAccessToken = async (
   }
 };
 
-export const verifyUserEmail = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-  } catch (err) {}
-};
+// export const verifyUserEmail = async (
+//   req: Request,
+//   res: Response,
+//   next: NextFunction
+// ) => {
+//   try {
+//   } catch (err) {}
+// };
 
 export const verifyUserCookies = async (
   req: Request,
@@ -191,6 +204,7 @@ export const verifyUserCookies = async (
     res.status(200).send(
       new GenericResponseDto({
         isSuccess: true,
+        body: new UserDto(req.user),
       })
     );
   } catch (err) {}
