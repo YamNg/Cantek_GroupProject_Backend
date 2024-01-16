@@ -225,7 +225,11 @@ export const verifyUserCookies = async (
     res.status(200).send(
       new GenericResponseDto({
         isSuccess: true,
-        body: new UserDto(req.user),
+        body: new UserDto({
+          _id: req.user.userId,
+          username: req.user.username,
+          userNo: req.user.userNo,
+        }),
       })
     );
   } catch (err) {}
