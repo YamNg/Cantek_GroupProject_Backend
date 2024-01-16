@@ -123,13 +123,11 @@ export const userLogin = async (
     } else {
       res.cookie("accessToken", accessToken, {
         httpOnly: true,
-        domain: process.env.FRONT_END_SUBDOMAIN,
         sameSite: "none",
         secure: true,
       });
       res.cookie("refreshToken", refreshToken, {
         httpOnly: true,
-        domain: process.env.FRONT_END_SUBDOMAIN,
         sameSite: "none",
         secure: true,
       });
