@@ -28,6 +28,7 @@ import {
   UserStatus,
 } from "../config/constant/user.constant.js";
 import { UserDto } from "./dto/user.dto.js";
+import { EnvironmentConstants } from "../config/constant/environment.constant.js";
 
 export const registerUser = async (
   req: Request,
@@ -110,8 +111,28 @@ export const userLogin = async (
 
     // set secure to true in production so only https can connect
     // secure: false, both http, https can connect
-    res.cookie("accessToken", accessToken, { httpOnly: true, secure: false });
-    res.cookie("refreshToken", refreshToken, { httpOnly: true, secure: false });
+    if (
+      process.env.ENVIRONMENT &&
+      process.env.ENVIRONMENT === EnvironmentConstants.DEV
+    ) {
+      res.cookie("accessToken", accessToken, { httpOnly: true, secure: false });
+      res.cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        secure: false,
+      });
+    } else {
+      res.cookie("accessToken", accessToken, {
+        httpOnly: true,
+        sameSite: "none",
+        secure: true,
+      });
+      res.cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        sameSite: "none",
+        secure: true,
+      });
+    }
+    
     res.status(200).send(
       new GenericResponseDto({
         isSuccess: true,
