@@ -111,27 +111,11 @@ export const userLogin = async (
 
     // set secure to true in production so only https can connect
     // secure: false, both http, https can connect
-    if (
-      process.env.ENVIRONMENT &&
-      process.env.ENVIRONMENT === EnvironmentConstants.DEV
-    ) {
-      res.cookie("accessToken", accessToken, { httpOnly: true, secure: false });
-      res.cookie("refreshToken", refreshToken, {
-        httpOnly: true,
-        secure: false,
-      });
-    } else {
-      res.cookie("accessToken", accessToken, {
-        httpOnly: true,
-        sameSite: "none",
-        secure: true,
-      });
-      res.cookie("refreshToken", refreshToken, {
-        httpOnly: true,
-        sameSite: "none",
-        secure: true,
-      });
-    }
+    res.cookie("accessToken", accessToken, { httpOnly: true, secure: false });
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: false,
+    });
 
     res.status(200).send(
       new GenericResponseDto({
